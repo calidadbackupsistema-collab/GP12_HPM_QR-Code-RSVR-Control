@@ -1,0 +1,1368 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>GP12 Validación de Códigos QR | HPM</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --n: #102a43;
+            --b: #1769aa;
+            --r: #c62828;
+            --g: #168447;
+            --bg: #edf2f7
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            font-family: Arial, "Noto Sans KR", sans-serif;
+            color: #172033
+        }
+
+        header {
+            background: linear-gradient(120deg, #0b2239, #1769aa);
+            color: #fff;
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            gap: 16px
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .logo {
+            width: 47px;
+            height: 47px;
+            border-radius: 50%;
+            background: white;
+            color: var(--b);
+            display: grid;
+            place-items: center;
+            font-weight: 900
+        }
+
+        .brand h1 {
+            font-size: 20px;
+            margin: 0
+        }
+
+        .brand p {
+            font-size: 12px;
+            margin: 4px 0;
+            color: #dbeafe
+        }
+
+        .langs {
+            display: flex;
+            gap: 5px
+        }
+
+        .langs button {
+            border: 1px solid #ffffff66;
+            background: #ffffff18;
+            color: white;
+            border-radius: 7px;
+            padding: 8px
+        }
+
+        .langs .on {
+            background: white;
+            color: var(--n)
+        }
+
+        main {
+            max-width: 850px;
+            margin: 20px auto;
+            padding: 0 15px
+        }
+
+        .card,
+        .result {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 19px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 18px #18324a12
+        }
+
+        h2 {
+            font-size: 17px;
+            margin: 0 0 14px;
+            color: var(--n)
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 13px
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            color: #475569;
+            margin-bottom: 6px
+        }
+
+        select,
+        input {
+            width: 100%;
+            height: 46px;
+            border: 1px solid #b9c5d2;
+            border-radius: 8px;
+            padding: 0 12px;
+            font-size: 15px;
+            background: white
+        }
+
+        input[readonly] {
+            background: #f1f5f9;
+            font-weight: bold
+        }
+
+        .scan {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 9px
+        }
+
+        .btn {
+            height: 46px;
+            border: 0;
+            border-radius: 8px;
+            padding: 0 17px;
+            font-weight: bold;
+            cursor: pointer
+        }
+
+        .primary {
+            background: var(--b);
+            color: #fff
+        }
+
+        .secondary {
+            background: #e2e8f0;
+            color: var(--n)
+        }
+
+        .danger {
+            height: 33px;
+            background: #fee2e2;
+            color: #991b1b
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #64748b
+        }
+
+        .result {
+            display: none;
+            text-align: center
+        }
+
+        .result.show {
+            display: block
+        }
+
+        .result.ok {
+            background: #e7f7ed;
+            border: 2px solid var(--g);
+            color: #116436
+        }
+
+        .result.ng {
+            background: #fff0f0;
+            border: 2px solid var(--r);
+            color: #9e1b1b
+        }
+
+        .icon {
+            font-size: 36px;
+            font-weight: 900
+        }
+
+        .result h3 {
+            margin: 4px;
+            font-size: 22px
+        }
+
+        .checks {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 13px
+        }
+
+        .check {
+            background: #ffffffb8;
+            padding: 9px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: bold
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px
+        }
+
+        .count {
+            font-size: 11px;
+            color: #64748b
+        }
+
+        .table {
+            overflow: auto;
+            margin-top: 12px
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px
+        }
+
+        th,
+        td {
+            padding: 9px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+            white-space: nowrap
+        }
+
+        th {
+            background: #f1f5f9
+        }
+
+        .yes {
+            color: var(--g);
+            font-weight: bold
+        }
+
+        .no {
+            color: var(--r);
+            font-weight: bold
+        }
+
+        dialog {
+            border: 0;
+            border-radius: 12px;
+            padding: 0;
+            width: min(600px, 94%)
+        }
+
+        dialog::backdrop {
+            background: #061525cc
+        }
+
+        .mh {
+            background: var(--n);
+            color: white;
+            padding: 13px;
+            display: flex;
+            justify-content: space-between
+        }
+
+        .mh button {
+            background: none;
+            border: 0;
+            color: #fff;
+            font-size: 23px
+        }
+
+        .mb {
+            background: #08131d;
+            padding: 12px;
+            text-align: center;
+            color: white
+        }
+
+        video {
+            width: 100%;
+            min-height: 260px;
+            background: #000
+        }
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 11px;
+            padding: 5px 10px 22px
+        }
+
+        @media(max-width:620px) {
+            header {
+                flex-direction: column
+            }
+
+            .grid,
+            .scan,
+            .checks {
+                grid-template-columns: 1fr
+            }
+
+            .langs button {
+                flex: 1
+            }
+
+            .langs {
+                width: 100%
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="brand">
+            <div class="logo"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQMAAABPCAYAAADvPKBoAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAFxEAABcRAcom8z8AAEQnSURBVHhe7V0HeBRV157ZFMjuzmxPI4BUseuHop+/n0l2yrYUIISOIEhsHzZsiLqKlOy0LWkEgvQWUREBEVDEhiAgSBMEQYqIvaOU3P85M7ub3U2AhKb8/77Pc55Ndu7cKTv3nXPPPQXD4ogjjjjiiCOOOC46imtRQselu1pcO2OTBqv5ljBU79Hppu7VG2fuIk01O4iu1evVV9ZuTXa7kSp23zjiiOMSBUIIN9Tu0RmmH2qjmbH/as2MfdaW077srZ72RYn6xZ2Pqibtfjph0ufPJ03+/IXEql3PJlZsH6WZuP2hpIptw1Imbu+pKduSo6n49FpdYFM7omy7qaN/V4vYY8QRRxz/UMAbPWPRIbN+1v5rUmYe6JU088BzyTO/nJswff8a1fR9e1QvfvF9Qs2eowk1uxE+ZS/CQGr2ImzSHoRP3IkSqradxCu3/66q2PZNQtmWPQmBreuSyja/nBTYzLfwbryX9K63aUvXXJHu32jpWr0+Kfb4ccQRx9+MrutRkm7+4Xba2QeKWs49JCXN+voj1axDP+JzjiB87rcIm3MEYTO/QtiMAwif+qVCApN3I2zSboRVf46wibsQVvUZwiaC7ERY5a76z4qdCCvfgXBp44kE6ZNDCdIn77SQPva3ENYNJcT1t6R4NmR29C+Naw1xxPF3AjSB1Nlftk+q/eqOxHkHX06Yc/hbfP53CKv9EWFzjyBsxkGET9uPsKn7EPYiaAJfILxmN8Imf46wSbsUgUEPRFC5HWGV2xBWsQ1hZVsQFtiCMP+nCPNuRphvk/yJ+7chLLADYb5Pkcqz7miCZ93mxNI1U1p4PrxLx629vk3lp4bYc4wjjjguMMj5PxlT5n5d2GL+kVfweV//jC34HmHzvkXYrEMIm7Ff1gKw6fsRNu3LKDLAYsmgGghhlzxNwKp3BjWCHQiv2IGwsu0I829FmG8zwqSNCBc2IoxfjzD+Y4TLn58gnFuP8HFr/kgY98H6FuM/8KhL1zhaut9rE59GxBHHRYBl/pGOLeYdGaOaf+QQ9tpvCHvpO4TN+QphMw8qAkTQKBnsQVjNHoUUpuwLTxfwiTvrVBN3HsWrPvsJq9z5PV6541u8Yvv3eNnWn1SBrX/gvs0nMW9QOwBNQdwokwBWuhZhpR8hrHQdwjwbEVb6MUp44f2vEp9fPaflc+8O0r2wul22e1Vi7PnHEUcc5whYISAWHrg5ad7hl/F5X5/EXobpwNcKEcw+1DgZABHIshdhMGWYsg/hNXt+wyfv3pdQvXN94sQdixMrt09Nqd7OwYqCKrB1ZHLltgdUZZ8+khzY+JSmbKMnUdo4KVHcUKsSNqxIED7+BOfX7cU9677FPWuP4hOADD5G2Pi1CBu3BuHj1yJ87Bqkem71D0kvvLew5XNvD9ZNeK99thvFSSGOOM4H3AiptHMP/SfppSNrFG3ge4UI5h5GOJABTA9ORQbTDyDVtH1INfXLr1WTP1/dYtIuoeWUz3tbpu683r50F9kUpwIgoqsn70kjyzbcmMKv69mSXzMyacIHExM9Hy1XjfvwM9WEj77Fx35wEh+3BmFjP0TY2I8QPm4dUj3z1rHEZ99apHl6Vd8U9/LM2H7jiCOO5gA0gle/vzVp/pE12Cu/IGz+NwibB0TwNcLnHI7WCkCABKbvV4yH0w8ifPqBn5Ne3L0iZcrue7XT915RjFBC7CHOBtlT97ZMlT5tr/F8QKVMeP/hhLHvzkoY8+7HqjHvf4U/t/oY/vy7CHvuPYSN+QAljF75TeKo5VPVo99kde5V+ti+4ogjjiZA+8p3VyTNP/IW9mqICI6EtQJsdiNTBJkMQDs4iPCpe/e1ePGLCamzd7aP7fd8A7wbddz716tfWD0s+fl3XlQ9+/YG/Nm3v8GfWXUSe/4DhD3zLkp4avneFk++8bzWvaxL3J4QRxzNALgLJ8/7agq24AeEzf+2ngjmBKcHQASxUwQgg5mHkGrq3m0tp38xqPY8aQLNwS3ihynGsau7JT+z8qHEZ1cuUI1euQcfvfIo9uy7CB+1AiU98cbypJGLe+ueXBxfjowjjjMBYgmI+YeHquYd+aveRgBkEJwayEQQMT0I2QpmHkSq6ft2a6fu7R7b58UGjmFYhrDKTDy9vCD56RVlCU8u2YiPWvEjPvptpHp0yTctHls8nnx0aQewScTu+38FYO8pqa5Ocq9alQhSUlKdVFxbe9EJOo5LGJZXjnRInPv1Fuzln4NEoGgE4dWDWI1AFiCC/T9oZ+wbFtvf3w2EkIp0L7kx+cmloxMeX/KO6ok3v1c9tgwljly8TP3oUvZK99bk2H0ufSC8U+/AdZn5vsHpedIgkFYu7x0diipujW0ZiVsenp/SpXuZ6cpek40g8t/F5dpwA4RwZuSbmq4l1bqmSLcRM8nQtKxrSbU6su8re4nGjiP8shfp5UNriMht1/SvNFxZXPu3/i7wogiRqNu9KrE5EvmSASe9yG0lJeuTzldQ3rUDZ2ga3Dd3bXLXkuokuL+n/B2bAnAxVtcefhIPTQ0ipwWxGkF4enAA4TMPHms5Y++k4tp/9sAyPr38ihZPLB6R+Ojry1WPLv4+8eGFW1uMfK0k45FF5ti2lzJkzcjlHUUy0lGC5n8FIRnpF4tDmhjbNgS3261q3aOKsTi9gtnp9cji8PFtepQPCLXJdk9t2aawYliayzc2zeV7/rTi9I7JKPA9eUXPqk5ATq0Ky50mh1dS+hV5i10cRzqkG2HgtC4MDDHZfaKyTeJMTnFMut1/ZfQZYhg87Bkury0j38ecF8mTWOgvtbDsmphD4Rl5vjZp+YEhGS5/SYbDO7xpEhiemR8YcmVxdRulG4WUM1wBeVtITD0DXWKOh3Uc4CeJ2z2dFBlzaqHHdEpj+FTM7Va1KSjvZXHW37c0hzS2U++q67oMmt45NU8ab3Z4+dC2rAJf39hjnhZtFvzUPnH2V5txmB5EkkCQCPCQVhC5jDjjUF3CtP3bU+fvj72h/1h09L9rafHYwqFJDy1cmvTgqztSHnp1vG7ka+1i210K6Gj3t7iy2NemU0+p/bW9Au069wq06+SqbJ/u9JYTbABpKVERWkJGVnyt28BJcptIYQbO0BQX1ybAACVsZUhLe5GW9iEtW4YsTv8roWPddm+lwWyT1kG/BC3VC+NrRPxIR/N/telelodhbpXBJkpaW2Wwbz/SWjmkzhk3DCG3ymyX3ghvY+Rtf2mzPTHTTZk0/kOywp86hv9VEeGXhhLaFimxbULthF91NulXk116MfpYbpU625OnpbhjWtav3ItTilR/jym4H56jbbr78uRuimsTMgu8jxG0sk0Wq4DUuZ6SqKMBEfcqYzRWbpnGyr+hsXpOJcu0lLDUbPM+AOdodvimkvaK8D0lKf5kVvdAv859Kh0kA7958NwZP0q1S/Mij3l6IKQi5h8ZrJp96JhsHwAtIEgAYRKIWjkILiVO338iZcZ+Mba7SwGtH1ueqX5k4dAWDy5coHno5bHaRxZ0gR8wtt0/GHgrl6+TyS5NNdqlV8026RWTTXrFYPO+pGPEHVpKkAcdiMbK1RGU8CVsh3aywD5OaUG7osr/wMNlckjPw+DWWnlFaO9Ji0OqDR3susFT9SZWWKOhvPVtQCjhuJYS/4oW6S+SFn5o1d3rgL71dolTBjrsIyBtrucvdfaEIUAGJrv4ukIQcl9wrr+kWCfkR18qwtPyA1aNTFbBgRgehBESIrJIgfONbQffwTZbGdIz/ILoY7lVaoqza6zcd1rG+7OWlk4t8rUK8nkr/XJH2/UKuORuimsT0lzC4wQd2ibCtZ9Q3y40IIM23QPDZeIBApc/lb8JW0WUkPZKZHZJM2E/k9M3SW4XvKcExR1tXRjo07GogiWt3DH5Psv3VDxpsYmzIo95Wlz75mFN8uyv5iixBjHTgVgbQYgMph1Aqhe/+M4090BObH+XEiyPrkrXPvBqCTny1ftaj17a4dIxtCHc4vTfqrXyf2ntlfKbXH6YmOBACRJBmBDgO9gmP3DQthyRtjKUmV82GIjF5BCfk99ioX1o6aQl4o0ik4FNfF8jv+HC/f6lY7mlOkaoImm+OiwUP8lgE6SsHr6rQaXV20WPfGx5H3h4PUfVOaWDZc3AISySByZso3ggg5/UlEd5u0Zca2ZB5Q2aXO5jjdXzoSaX30CABhF9jcc1Vu4zTa5nrSbXs04WK/exJtfzvXLMcLs6TY7nSw3l+UBD8WsMjPhc9LEw3GLnOhhYfqSe5kbraeGphuKRPwkrt7qedGHgcb+271nulHsprk1IzxMeJajQNctyXJ3NDY88mKwZFJUN1lr5k9HnyR/V0cJXOkY4FBbWezC9wO+Rfy+nrzrynhKU8Fvr7uW9g2TwZ7gvSjhpsQkygTQBCDcvONApYdahXUro8SlIIEQEEHsgy/66pKl7Pui2tI6M7fFSRMaoZV06upfecqvnfSJ22z8TCDc5pBsJiv9cw/i+1dLSYZIWvyUpri5mkISFoLg6kpa+1TLSIS3lPUKyvkOt8gM968kgYqDLZCDODx0tSAYfhMkgOHDT8oU8MBSC8SpSwJAFRACDonlkwDdCBhiWxszQaKzjrtXYpKt0dh+lZ4TD0QOR/yXV5S/R3D7mGvXtE25QZ3PXm1mhK0kJSzSR15XLn1DncBJh81yuoSZcY2CF1rHHArvL6SQEjVV4QcuAphQ+h3MgA/jdQgOYrzMwwuZMl3domtM7JM0h3pnm8N2Z5hKGtu1V9m+4r6Y836RoMuB/PzUZKNrEmeF2q8j5R+yqGQf+any1IFIbAHfjYCDS9AMnWk7b44/t7lJGSfX6pF7zP0yJ/f6fitR8X5rRId6pp4QRBoc4MtUpLTEwwon6hzOknioPhp4Vj1ns0lKDU3jUYOPvSbVLJZf3mXqZ3JdTcjeXDLQU92OmK0BHnVQsTkUGuZ5BYEA028XXmkIGkeh4p99iZMUvI8mAoPkfO/WBKU80dLQwTRMesEAG3AlNTukjse2aD7dKk8NPiLqu80YG4kmLU3otsl0k4L5Z8qQLQAa1tQmauV89IrsZN0YAQW0Al6MRg0QAMm3fcfW0fXfFdhfH34NMp9TbYJM2kTQf1Azkuez3BC0eCT2MBCWc1DHi5nSn774sV6BbK7v/FhMr5mY4fIyRlWYSkdOLJpEB/2N6HtgFToNGyEAT1Azcxe5ks6P5ZJBR7GtjZMT9sWTQrlcZE9nO7XYn6hh+lgZsCRFkoM7mnoxs1xhAs4HlTzDSNiYZedVqTQ7HXRDNwCrUGVhxncUp2lMdApNRGPhP1sNiSsdeUyypDh9jsvsoo11aKhswzysZuFcltpx9oAqb+43y5g9pAMHpgEICoUjEYGjyi/uQavLnf6in7T79gxDHxQBudvK3ExR3MDzgKB6RVn6XkRFHGRnxAYL2bAzZEWSVmeKOEVbhS8Iq7icoEH4/YeV+rn8Ym0EGTr89+nRi0CgZcH9pcrhqPe0ZpGe4jeGH+lzJoGdllJZytmTQ1b1InZ7nK9Lb+fsMNvHuBmKXSkCz0lo9b2rDdpZztRlEkoG8z1GCEg6QlLjfwIrrbxha07ZV94CDpIUDhJXfr7Vyv8m/wfkkA0gKkjT9wGsYpCsLkUCkBhBFApCX4AuZDBKm7P4+a/b+brH9xXFxAQ4lOoafF6UKU/zvZpd3aKiN2S46tVb++/rBIyjLYmDhlw2KAeV/q+cikIEsoL0c01DcH1orF5zW/HPI4Lo7prUysuIGLc3XEUCcsvDHtJRwAgZXhESsUMj35a92RbCceh7IAPqWDb1lYOv5rcugSZ1htYC0lyvfRxp7zxcZuFehlknTvnwHm30khgBg8IckSAKhZCU1X6CEmj1HOr184LrY/uK4qMDT8suvIil+r7xaoAz0OpLit3cb4Q8bdjval7bQ0cJSeekt+ABpcj112lxulyYHrPOeNUSu52DEYL3QZKA8zEBg4bfbeSCD3ueHDDoMqWitZ8St8v2qX5I8STDenwnW91NYGN+PBCP9EJQfSVo40qF3mU3u5BzJgKD4n3U2YZOeFT8xsuJbVw15sXX7onJKzwqf6lnhE9LKf6cJtz9PZEDX7tElT9v3ETbzsDLoowgAshQpBIADCUBSU0hhVrMHJUze/U2n2oPXx/Z3NgCDSGb3MpM6m0uX5T9SBsmKRrCYx7aNRBtXpSG8TzaXrs0WzFG+Al2rkzQMnwr9RbY7k6T14FOb7cL5twC8+7w5Olr4LjwwKLFOb+OXRzUrrk3QMEJV5BxTk8v9abSLwzQ3j0sz2t1ZJrsoNlxavDBkoMn1nICpi5EVFupo/nCYEJpIBq16+LMaIwMYLJHtamtrE3S0MLMBGeR4nohsF4uOAyZlGRhpU6h/jZWv01CefWaX76k0h+/xNLv3icYkPc/38FV3TOwgd3IuZEAJdUa7992rBlZdd3XfimtvGDT5Cog1AYKH767sX3692e5dUE/u54sMVvygS566dy0246vg4K/XACCZqZLQNCTBXIY1u1FC9a4fWs344ubY/poLMNQYHQKjt4m8muInwlwyxcpX61nh3lOFHGdnuxMz8qX/MbDCeA3FT0zJ4arVlDBRxwiPGweE3ogIN7GBLtpcwZuSw0+CNk0VHSv4DXbxiVSbRJtu9fyDlxoR3qrIe7OO5r8KP7iUUKdjhA/Brz7U6spid7KOFuZqmQgysHJ/mGz8PaZcz+VpttKrzDYxcFYGxGaTATyknqN6hr/vzlHzLWY7vyz8UDeRDDr1qgI1vsFqQvteAWtku1WgGbDijNjVBHUO93hku1jUk0HwftAS+Ca8F9vutGgOGfQsH9JgNcHhXRTZDl6YKOLlaHb6Kgn2PK8mlKw/pE6e+sW72IxDwYEfoQHIgx9SnMNnRFLTSZ8j1cSdv6snf376B+HMwFvnS1eRNLdNflhoLyKCbqkGmzgLmD12B3mf7hM7kDT/Puwjtw/uQzLCqvbF1Tq5ldutsjjEIgJuiuyNFmzXJJGNbEhHCZ/raeFBsBzHnsQ/BW2Ly9N1DP9upBFOa+W/y3BJ4WU2eSpB8zuj5pm53AnSyu0kKH4tQQvrSCt/SL5XF4kMWuZO6A+bzXbx1TOvJiD8sl6Vl5sdvjyz3ec0Or1D9DT/bRQZUNxv6Xnep80Or8PslFwgmS5vATwT0X4G3EkNxU+12Lw2aJPu9N6ePXhqy8ijNSQDsU6Tw63B8txNfw6aQwb5PtAMgm3gE1YThE9SXdKATLvYN83l65sZlPZFE2+Evk1O7+TzvrRYsn59UmLNrjew6YfkQY4HpT6bcSQJwP+Q1XgXwqt3HVdP+uzcIhXdblWqQ7oLfNmVHzZ40yjxhNEmTohtLsPtVqXlefvI86XwGjr8LZ2Et0BtrZJLAW6yySbdQ8j9RvTdVIH9ZGLgv4OHJvY0/imAKDiLXRqhtcpuwOGHQ8dyi9Kc3ptT7b5r9TZhUtimAIMYBgdcGxiibBWKwP+hAdNkMuB+hGCf6DOKwSnIQE01w+kIBlZB4GmS9X5LMOJhgha/0Vq5k1Hna+XrCFr4gWSEwyQjfC0LLRzRWrk/6+fWQaG4XwlG+IpgpK91jPjeTfdNTY88XAMyoIAMPB9i2e4o0jgtmkgG4K+Q7hTthJX7XbFNhM/1BEmLv+nCIv2mZ72/pBf4AooHovcCeCC6VyUmT941HdyLowZ9KK15WIJpzUNSvftESvX2cbHdNQvAcC7p+QYPIiUcN7PiQ7HNAcXFxQlGu/QwvLnDFyyLcAKmGqF2MJUw2YTn698ekf3Lb7XGJbYtLSKDTaoAcok+k4aANrLn3UVGl+7TTQZanKWlpaPKA6WQH0mLn+gYfo1ssYfv5aAZ/piW9n6hZXw7tWyE0OJ30dfdJDL4JSPPe/ocFqcig+Z4IIKff35AlN2u4cUhvzxi4w2UgKxGpUE7IMIAItgyRFLCvm53zcyKPFwsGWgosU5r9XwE/gWR7U6LJpMBhpl7SBl6VnhJS4tHZdIOr1LAuYMRUxGC9iGLy1sD+5gc3hqIrQi1Iyj+r9Y9K/p06FlpI8G1Wd5X+c0tdnFO7DEbRy1KSKn5fIxsNAwN+pBEDn6oflS1Iyjboe3JxMqtCyH0ObbLpgIGrMEm1dQbthQhrNzRVIdPViNjAfsYHeIELR26wco+Goo/bmLFkaF28MPpWX5ybN9y/5RwgqD4BqKl+BMQ1BPVnhJPGmzComtHztBEn0lDXFlcq71+SFWnKCPmRUKbfL6dkRWqwGdAGfCS/LBDDII8laL4YwQjHdQz3JzUPG93cF4BVdliE2zwdjfaxRlyUM2pyODBqXqTXfywPjZBJoNjepvgBbsDQXs6EbeN7xwW2tNJV+jVny8yyCqsuE9Pi5/oaW6dIkKkrNUzwgaCAl+JqN+6Tkfzu/W08FFMe6UPRvjYZJPm3jZiiiXycLCaYGDFzZF2GMLK723l9N5stPtJsCMZu7nlz1iB5zN0zk0lA0D73r6rDQzv0+Zyy9U5pW9pc0tXNhArt9Lskh6U41IcPr+G8f2ssQrfa6ziDwTFf92qe6Bn+8JyiqS4b+E7jVX4QUNJ31vs0qTY4zUON1IRU3YNxIPFTcKDvypY+UiWIAGAhCohVe2oU5Vv2ZVes61tbJdNRXFxbbKBFd6sV2+VG0daue9S7b4oy3AYxe5kPS3URK+zgnj+iiQQef3dJr3egAwo/gejXaw12oX50SLOg0GvtvK/RKmVlHhSzwgLIPlH9Ik0AG5xcumd+1QVto2Zg14sABmZHGJ/kuana63cRwQtbtNRwnawC+hYYabR7hvWuV91o/kbLA7vqNO5I2e7a7VGm/B2eOAqBAzyA2HlVsnht7ncspBoaWEpkI4StXiOZIBh+L8GTMzoWFR5Q6ceVdc1Jp37ld8GXnuxdhETKzzZpXfl1bHtQToW+W+4fEDl5WCpjzzY5X3LMg2suDG6L/6EnhFWkAz3jDaXe1KbWzoqSnI8TxFWfmT7nr5OcifNJIMQslxiK4x9oXVKdmlWQ/FntS8ulW1iQOZqq+cpda7nMTXleUxDCw9m9Srv2KGworWG4h5RWz1PqHO5J9W5nqdTXd6C2OM0DsiEPHXvLarKHT+FayBWfYZwqHIkD/ztCJdJYFu9QEm0im0IL9v6i7bi09OriafBbffONhCU55OQOqY8EEIdSXv2tcv3XRvbHtC1ZJHawIivRe0j3+jSX2CZLdSu/cAZqSQtfBQVZUcJdXqb8H52SbX5lofnG2+6f7opJLc9OdtwRd/KGwhaOKCJnFpQ4gkDK5Y3IU2anBQjq6Ds/rSBZ9YiLiTAiJrqEK8xuwL/ycoTs+Hva+6dfcrcj5DPwOTwnjZqMdvtTjSxwgsQniwPkpDAIGfL620PQSFs5cji9D4G9+U8kMEZMcK/tIXBJr4VRf4Ufzwlu7RXbNsz4fICD6FnxCnKNcJUI/jJBBABKzKR1x8W2ej8V7uefiX8+izJADQLyE7UOU8ww2esdOzlt4DRGP5u07/SECmwPJ/Rr9oMS+4h0mg2jJN2ZSVWbtsAxkIY+A0Gv0wAWxUpD0rZFoRXbDvZsvxTXxMGSmPAO94xsYOW4vZGzespvo6kuP2QqAESWmTlVWSHpaD89syCsgKC5jfHkgFBcV936VPWOdR3ZvdJnXU093lkOw0lntSxwoyY8wgjq7DsGliiiiIDq3DCyHKjY9s2Ajm/QLpLKpXV40sIChlAPoNgrgLFyFhnsdfnMwCk5Qfa6WjPdB0j7CYZ6SBMOwhGOtCYkKxvX5ozMAxU2otBBtkPvqo3sOKqWDLQBFctmguzy99VR3NLSUbaG32d3kME25j4DhGMuC8cH3FWZIBwM+vvaraL5SYHX222CxNPKQ6x0mwTKqLELlQpIpYbbZJgZL13tKY9zasdcsv8D1OSq7ZPkW0GEW/+aALYohBASKBQavm2uoTApnWtJu2KMsA0DeBo5P23huK+iTXyEVbuTz0j7Naz4nY9I34WITv0Nulz8NuObA8EoqP5nR3vDM39EJ5W4L2ZpLmI5SeZDE6YbFLZdYVefSzzWpzl6XrZKi8vPUWej+ycE3v2DYHwtB6+q80OcUZGXuOq+AUFJMnIn9SubYH/hlY9Atdd1iNwXbuiimtPNS2IhJzpyCE9T8oegUqyDoLx1kUmNwmhXb4vLd3lc0JexXSQPP+gU0lbSPHV7HwGDckADLOQ5PWU4nar2IfnG412oSEZ5Hjk1G0N9onav/G8hG16Su3THWLRma5TFpf3joz8QL9Od0xrJe98NmTgdquAvED7IO1liLT5TyOBBgJ+B/AbgihTPuEnkuEnw/Mde6hTw+1WqSu3DcXLtx5XqiLDmz9SglWSA1sQ7v9UEd+nCPNvQbhv86+asi3Ny7EGgGVFm1SotXp+jyUDeeDK6lns+r8iDZeKhDo9w7+XFZ7Xw0PmdRAUdzxyhQCMgyTNv2u2ix6zXRLC4vDyekas1NL8bnkeHO6bB2L6yezyKcEnpwXC2/aovEXH8MuBWGK3Xmh0zatWWxw+r8Hu32CwiR8bbN6PDTZpTVq+1Du2bSxgMGXke/sZWWGxgeVeM7DcIoNNXJRVEAA1/9xwjgbErl2rk9IcktVkFwea7J4BJrsQI54BZlrol+GSSvQMv10baQS1cmAYLjezQp+G+9WLxS4WmwrKmvcGPRPOhgwwtyrFOqGHOpcDw98PGkpshgig0R6PWkaXp8jCSVi+jz3SqYEQbqjZfnVC2ZY9WMUO+a0fluDgh7LoikDJ9M1K6XQojurbUpcsfVJrX7qr6csuwQcw1e4vIayemGitsxBKOmlkxdrwdEVxOLojyiAWbgtvPcjd542RYE672LYU90XrovKrYs+/Idwq8KQEB57OAydd9JyKlxfUEAQtrJDzCcrLb0quQrPd83Bs28YAkXr2EVMseY9Um0Hsd06xDH1s4bl7X54jGYD9Q8/wywlKOk5Y+T8bFUo4qrXysLauPEvhZWL5EwKMjjbYJyzCn1or94PZdp59Sc6KDBCefHvpFeAhqc4pHa3O8TzVJMnlR2mt3GhI4abN9dT7GCjPcJ25QZ7HMyCjer06uWzzLCiNjstv/BAJRA7+CBKQPpHLpsPfKmnjt9ryzbfH9nk6gGpqdEjPRM/P6wehsn4ayi8XKY0QB+U9AWm26juHBJ++J+sfwEgJ/zCNSOw5yBrHlFgPtUbhBjIQi3Q0v6N978qrYzdfaMDqCQmG1QifDcLKHbc4+fti215UnCMZtB08VU8yng+VSL2GWmKUNPbMnEbDVETOI3jcxJ7BX6K5OCsyODe06VnZnqS4NfVBa/JzDIbg2bFtTw+EcLJ8cz/cu+k45tuiDHpJKYuulEcHAoggAXEjwoQNsuDeTShZWD8DvBljuz0VIDc+OPM0XCKUk3f+RtBeSMzxQ6xoqRh7gWw8lE6YbHy9Sgu+CDapsj7xRAQRyG+NWIJp5AGCRCA0/2GrHmLTIjPBM9LlHUrS3MFUm/ffsZsvNEAzIBlILhpJBvwJnU0oy8gTzBCrAHUkwMW7qQLz6djjNBvnSAbXDuQ1Bps4lmSEJSTNv34hREeJtel2303RJ36O+BvIAKBnBUkTOaaa5YEYAVPNhswE76YNWNl2hHlh0IdkY5AANtQLEAG/XhFxA1Lx67/TBNadPgVWBDra/aSBFV+OXhWQH4g/LA6pJs0lPZ6WF3gyLPn+J9LzvKP1jLA2ivkUv+xjqU7fwFDfMM+EOW/kwAi2PUlQoFaKR08lYHTR0uJuyBFgcUj/E33Wp0FxcQLEMZBW7qfW3f1s7OYLDSiqQdL8qw2umeIPGxiuzGQT767Pp3cGyRPvTCsou7NDUdm5J7ttNhnEJERFCIdls7aDy9Pb9Z2cdv7FlwaGZ8jbGHXe54q/gQxA2051Cu4ou0lzYhMiAXPult5PHpOnB7GDP0QAoAmESIBfpwi3DmHCRpTEffxam8pPT7meHQn4IUiK/6CRJcKvru1dc0o1W89I86Lf+LJ6/0tqXr2T0uDBU1sStLg+2gbA12kpbp+BlWpAazCywsRY0dvESj3NuU12Pv/Woc2fLxtZ/lnCyh0zOr2QZPSiAghQz4oeIuSGGppSyevjYA8REfgRNFkYH4JU6rHHaTZkMoBU6VDHIaiVWT1/hchATpUuuxfDuUKqdL6RVOmXIBpPlX4ytm7C+YS8KuTyPqdotmEtuM7iaEaq9AjglvINHROE9Z9h3k+VAS8ERR78HysCg1+WtYqUrkW4Zx1Sla79JYX76O4m+B3grXpWdSIpfkesw5GW4j7/14CZGbE7AGRVmOLfi3r7yUY+z+GsiHn69XdOsWhpYV8DHwNGmN9twExysHtqy14Piymx0ohtAJcz/GLFCeAMAlObttnulhDFaCqoIXTZXj0sI0Ji0ixW7Ki3CbMJCCG28mNMtCczrUdlamb38SYDXaqDOT3sB27ScngxuCxD30rMw5nuVxOA8NR8/y06il+rpSUIelGy8dAgIkhd0EEGPs8kSMv66lLPFxnYRF4mA9nSLddNOKa2huomCIuVmgrKoNFYuV9TrPz/CTJIz/M+orUKUEsCYkZAflXn8E1Ypj47KGTge155CQbvNSXWWexCM20GQcA8US2uH4WLG05iPEwFgABCgz+CBDwKCWClHyFsAsgamRASJqz51CysuyG232ggvFWB92aCqo/DD5EBQXPrwJssdg9A++LqNjqa/yzWqxDCc68cHI48wzsUlV+lobiINF8g4gm9TRBiujwlgNC6llSbYa08y+67Kc3lzcnI9xeabPwgk0243wjuu1ZhPNg9SFacqmPExVpa+EkhJ+EwwYjz9DahRmfn/ATNjzE5pMcNDumeVIfYv1WB5LLYfbdlFvhvaN+zqhMEAcUe/2xhcQq3wuDTs3ytwSa8ZGDPWl5uXeBr0krEaeF2q3Q2YYgml39Dk+NZpMkpfV2T61mgyZ1gRW63yuwUn9bkCkvlbbnc62orNy/FWvp/IJ2eW5XpkmhtLlemzfWUa3P5cm0OH9DmcE2fejYT8gqdM9BPk8Mtke+zfL+5180O4eyzQRO+NZ0SubUbMXFT9OCPIABcJoE19TJeEbx0HUqe8MGsjv6PTlNPwa0yu0QnQfG/RK0OQFAQK54iRTTCMwu560kanJSitQkdI6yBdfZQu1b5AStUmIkmA+GEySY2ed0cjG033jmlfZuCAN22sLK/2SE8CF56RodUoWPEOXqb9AbJSGs0FLdNx4i7CcZ7UGOFZSweaWjxd4L17iNoYbeW4j8lWeF9g016HeIDzA4xYHQIz1ic4n1tepQVQ0Wj6+6oUhxVziOAYG7rX2k4W7ml12Rj9n3nJ9uTJdut1VhHpWntfovWPs4Cn1i2ooUZikt1UdvyBHPHjs2IDvxHw60CY7asBYakCdGv54JrGV4D2b2U++m3aBh3KgRXxbZrMtzIrdJI6+/HPev+xDwfhwe/QgARJBAkAGzchxGyBuHjPvwzZex7D0Gy1di+AcBgRrs0mAitBYes/IwXmRySN7a9AoSnujiaoPjjyiAP7kdLUA/gJVCRoBX0bXFKg6CNJlxiClRT7s80m/+MDjiNAIeMS1m9xBRLdrkWlroISvFYhJoDJlbo0qa7vyt45ZE0t1qemzP8rNaF0n/aFgk3mB1C58v6l7eFqUQmNd7UttCrh8EBU5JTZXKKI45/FNKn7LIkTVizWJ4qxA5+WSIIYCzIB4q88L5MCKox7x4kJrzX6NxPKfQpPUmwfgQGFsVoJdSRrHQoMy8Y6BEL2UlJGkCykN0oytj1jcnO3RtqJvvZO6Un5QKg9W3+0tP82xa7X8lPd4FgsonPQSi00S41Ozgmjjj+0dDx660J4z/8Biv9OHrwh0kgSABj31dI4IX3ET7mPYQ9/578fcILq9cbx7/bME+i261Kz/cN1rPiMoNNfF3PiosNNmGBxeH77y29xMZDhd1uVauCgMvgEN8M72MXXzWw4hOwjh7ZzpLvHWK0SW/I7WzCEj0r1KQXeJvlFNVsFNcm6BjpYYLifmmVF4jXk4jj/xYggCNlwodjVBM+OoaN/yiGAIJagCzvySSgEMG7QVmN8DEfoKTn3lmpH/NOg5LtMMe/spdohLntNf0rDd3CiUxPjWz3qpZXDqvfp2tJMN9hDLqWuNWwPdSu44jGDZLnFWAMs0slJM19nWEvvy12cxxxXPIwih+2Shr//jJs/NpoAoCBHxQ8TADvIuy51Qhzg7yjfD73Hkp85u2X015YfdH99S8q3GA99vXV0/znFjbQNK/FOM4KYBcCp7W/I8Xc/3toJryXkzDuvc+wsWsa0QCCBBAS9zsIfxZkFcKefhthz76N8GfeQi2efWuuadyqLrF9/9+BEilJ0vzGKwdO7hi79WIA/CBC2lD24NjknQgHPw3QxsDXoik5HS8GwJB6Tf/ZshbXlMENNqF0J3+7jvW9YLAJ/cCwG7kdloRvHapcJ9yHkED/4OtxNkZb+wh/i1Af8Hfs9lMBNGu417CvUofjjP43zQYco2txte5CHqMBtOPeG6Ya896PsrHw+YjBH9IEnn0HYc+uQvgzIG8j7JmVCHs6KPL/q1CLp1cuMIx785TehZc2EA4rCCTDreoEqasuOhDeobu/a5rD90Ka0zsOziVya0aeW53q8N+V6vJPaFUQeIB+orbRKdbFxmU9vbenu/wTUp0+d3oBf2Xs9lgMHryqpdEmzNQ6J0F6vJ1phV65inQI4KOS6fLfm+rwT4D7kOqQuFSHl4dPPcU9A6HQRjt/ZVOIBwC1Cjr3rr4J+kpz+se06xVosg8EJFxpXRB4ODUvMB7yHYRWvM4nbhk22ZiVXz4y1QnHkAZ3LWl8Be+8Ikucn9LiudUefMz7f8oGQvntH5RnVgUH/FtBAlihfI5eibCnViBs1AqEPbUS4U+tQImjli8lnnzz5gtxY/5eILyVK3Cd3i7OT7ePi0qweVGgrLaUQGp4CMmG3H9R2/MEsyaX/5CwlSE9K+z6n5LaNqAdQDqzqN8CvstelSgn9pQ9JJEK3qZKm9BbB+HwP+wraxgI4fC3LNlKf2f6feU3Wkl1ktkuuUmoJ2jlj2vp0p7QF6yLg9cmCPwdaVSGh91g8z6ipYVNEFHanuFTI/sd4V9KGhhxIwHZj5Ul6O+0lOdrba4H0qb/Ar4tBC2+leqUCsPJS4PnA0FRkPIs0hMVsnG3zvffS0KCWYpH6Xm+e0Ltg0lRwm9iOQmLG6lkD9yu1Ukdekv/MtqEL+FctFZuldo2NiON4TWRb28I0U7L59tl5Ald0p3lbRur5BWqOGZhxY7pTu8VIWnjktpf0bf8KqNd2i/Xy7R6VnQc4Ceb4AF87sgcv9aU/Pw7c1TPvXscf3a1Mg0AEghpACECGA2DP0gCTy5HuCxvImzUcoSPXoWSnlj2EfHkkrwM9/qmF6X45wPPdAid0/K8Pp2rsknxGecVYMB0iMNlBysa8jby4UzRMux+Up0DxVb8SEd5dtx017SrWrlEp9HhvSOruz8b6hIq6eLKOlvs0mBIrKqzTbjMyIrdLC5psMXhK4LcetBVRrZglhOCOKVBlxWV33zloOo24Fkpv3Ud4h1GVrzTZJcGmPIESu/k20ZWAgJ/C/C+NNt9fcHXRB8Krsrljqbkego69KloTTDc8xorx2korlRj9Uww2vmH01gxN20gDCQMS80r+zfJ8KMsTm/PtoNXRU2HhnreJ/S0sF6Jd+C+JhjxAciDqKHG99Ez/NPaXO47GDgkw30KCURhH7K7v4PBJvU2MvzTBhs/1shKI0wOyRq63laFgbtlYsnlTmS4/CXglZrm9PeGFHxtg4lsupZUq1v38DGZhYE+cD8NLv5qguaqtTT/EyQZ0Vg9e9W5nM9oFx/qCsVYIKGMS+hqYMTndKywyGgT3jGwwisGRngcclaGBjSQh8Ul2PQ2STDYxOVGm7TaaBNWw2eqwz/tij4TKb2N3xMsIfep2ekbBnVFoJx7Wn7pVbHTqPMKs+edTknPvr0Ef2bVybAmIBNAUAt4ark86IEEZHliWVDeUOTxZQgbtRIlPL50V8qTy/6bOuq1tNhjXKLA2xZWXZaZHxhpKvgbSrLJZCDcpdRIUPI2wtwZ5rkgmZA1N9fzPgw8Hc1vvmZwDWW2ietIxvuHxSHOzytZJD+gqS5/iY4Rj5GM8JOOEotIWpB0jPiXjuG+bFdYJq8KkdljbyQp/hDJSr+lu7zlV/et6qFn+J9JWvhVx/Df6hj+oI4RviYofq+OEuansWI3eLihepaOEcq0tLhTRwvf6BnhICzFyg5nuZ7f1NmevPZ9y24kaWGLJpf/UmPlvtDmcocIij+qo4XPDHahZKhnIWG0e8vVlLSDoPnlHYIDOoQgGayD4CwoQNt+YGWU5qCnBaVGIcWfvKx7eWHrAvl4i7RW7icoCkNQ3AFNLv87QQufw0AFT8ys7v6hioMcdyzD6RumtwlPkYz4s4EVv0h1BeRI3VuH1mRa7OK7Opv3Z5NNWJKW589X55QehLqSigesBxKwHIYM07AKZnF6rycZ4V0oaUfQ/EGCEleSFC+nAIQiuW0K/FfCcjWQMgEerpQENR6+1LHCO3qWW6VjxdVmh3fmNQMmUgZW2BXMC3LUwIoHQCBlPlST0tmFoVBeL/IenFeYn15xQ9IzK98C4yA2+q0gAYAmAATwpqIFRJHAUoQ9HpRHlyjy+HKkenTxb8kjF1dqHl9yzUWZ61xY4BCcdFlxVe9sd4OApwuPEBmAh6YVckIKq1MdPs7s9AogRpu3QktxB8CVG8jgqgE1rJ4Rd8Ib1MjwSxjI6Cx7hvpHaGzlsmu4JtfTT53DVcmJRaz8T20LvXKh3ZSc8Tdrckt/hwFndvBTu/Qu60vK0XkSMtrEpQab8IiBEQNaK/crBCjpGbG2c69AOz0jzAYvU4IWfzfYxakmp/cxk01cDo5h2lzud23OhEJISQ9ZhwhKGKq3i/elQW5GSvgCzlNH8buvu2NyN5NDelnLViKS5vd36lNxReRtCJGBRo7U5HZ2yC/vCNMBmJJ0zqs2G1j+NTmKk+L+uKyocjD4oijX5/neaJdGGBmJhbqUypuW/zPV5R3etnt5BBkEhhE53Hg5KUou93soQ9I1d03K0jPiNg1MeWh+LVRp0tvFgSQjHFIqMpWuS7l9Qr6R4W++fOhCwshKFXBNhJX7w+wSHwKNyGz3jlY8WL3IbJc4SHtO0sIGLaMUe8nMK6eu7zXFAgQHuSi79qs2X92vuovBJuyBeB2NldtlcUkvWOziOK2V26KRp0rcVxk9pH9F3qPzDnLsym6q0cs/woEMgAieACIIEUCQBEIE8BiIQgL4I4sRJsvrCBv5BsIfXYYSRr72TsuRr/fVuhedMXnnPxltB3v11/Sf3PVsLNbnjEjNQCms+htJiUcISvwGJFgxCVKAQfLYzVcPnMzoGWEbZEE2MsLCPIjtgJJ0Tt99GlYOKT6myfH0UUOQDXhzUvw3ofT1Kdax3TS5nh/ldOoOoeaKvv7eJKVoJK0KfA9CG2bkDI2BFVdoaB8yMPzOVgXeOwiK/wFyW5oY4Q1/MBgtw+UdBd6iGiADakIhzINNNulxguZn6Rl+GajPJO35GrQHguJ+7dS7sq/Z4Z0FORB0jLCrc79A1ApVmAxoOGfuayPrHW2khKFmVhxuhOhJiv8ZBhxJ8ysgv4Ncfo32ntQxXLhGRKt88Rat1fMdEIKOERa37lH+sFZOzxckAyv3QjA+5gcLK8q1Jq+BKky0sAlIiKSF9+G7W/vWQP2FnVraW6fN5RaH+oe6DHoWQuxlwvnJYBPKDCz/hJ4Vq2TXeSAJhl/bqqgS8nj+oaV9J00s/0po/0h07ANTHPELOEZKrmdxcbA+qZ4RH5CTnNBiHeSHjN3vvEM7anl2wqg3P8CeXHFSmRIAAUSSwBJZcNAERgZJ4OHXFXlkEcIeek3+Gx+5BKkeWvh10sjXfCkjF91kcdc2MKJcCoAfAuo6nJ+Q5Gaingzk0GU9K05t5Qy4INIyI18qTLX7B2it3FZ4e8vThAFTKYUMvHUGRny9Vy8lmazJGbg7igysnkqFDLhvIRoU2qhvH3PDqcggM0+ulYDdWlBDGG3eRTCgDIzwGZAESXG/gcZhtonTQqed6vSPVsjA8xtJe/qZbPwUiDeBNzFp5d/XMfzrEKkKqjZJ8z916VveTyEDP1zH56ciAyhHprHyx0ma/5a08oeBGLQU/72WFvdpGf61NBufk8qIPZSYf+kEwXBloT7IfLGjNpf7EoiSpIXVmQVlo7VWWd1XyCCXHysnG83lfoLlZNgHqjIZaPEThQz4DyDQ7YqeVZ0MjPC5QgaeN7KC9/jagTNS9ay4DohRk8udJBn+EMnwn0FIP0xtSEbcpmPF2jZFZXkExf+qZYAMhJcjrzOEDgPLOypkINVpcj1vKFNUt0qdW3qnktNCPJ5V6B8Ru98FQYp7WbfEJ95YiT++7CT2xJtBDWCxMhUYuQThIRIIEwEQQJAIHlyIsAdeVeSh1xH+8BKU+MArm1o+XDtS89BrV7X9O9TtSxUyGXBgQKxTCtd65Dd0GHZ/C3Uut0p+o1LcluvumNaNpIVVcuJUK78disvCnN5k946Dt6pMBrmlvXWUOEHJN8D9lpbv7926oCzTyHCsJtfzcz0ZlPcmKajvJ57IcElyufPrCqfqjax3saIZCJ9lFXq7kzS3E4gFSqG1KfZ3hZD0NIeXB7UYNAOzTbiLpIV9GiYA53ioc3H5bffwb6ZmuLwSPNgkxf3SpV9lX7PdO/uMZAAEQ3HfG2xiQM/yz5I05yYY/mGTI9D92qAdIcsV6EaApsCAlsEvu7LXZCOE8MO90ORyP8Gb28jyc9r0KH+gXjPwDTPahAfl2ocUd8xok55pRfs6dezhv0WeJkCqcoUMEuBe6Wh+k3z/crm1Jpvnct1tEwyQpt9oFyZqoSCLlT9ptgkLMgq8wzMLfHdmdi8bnFkYGNK+cCLVyVXZnqCFzWDwhCmSJT/wP1BxCTSLrF5iK0iDD7VCQpoBkIEcoQjZzmmYMipk0CY/8N/Ie3RBoXtq0b9aPLH0NfzxZX9ij71RP/gjNQFZgAQWRhDBKwgbEZT7FyDsvy8j7IGFSHX/gr8S71+wMuW/tfcRD86/PMMtv23jOB1kd2hBWVoEVZz1PBG1PVswa6zcB7DMpaf5z7r9d1I7g427m6D4L8HwRFL8ZwaGf5ek+T3KQyQc1+ZwRRl2P0vQ3D6NVThB0vwms1OabmSFJbIGQnuR2SFO7dLbJ9sM4LgZecqSJpCByS69AWRjYIUv5IcWgtNo8bDWyp+AN2N6nn+OmZW2ARloc7m/SMozwGATpkMBWYLm/jAw4qsmh1SjY8TNYFfQUdzvXfpW9TM5vHMJphzpafGLTn280TaDmvcJPcNv1ECVJ5rfA7aKyO2RAO3FwAgzNLQEGZJ/h2mE2e4dSjDiSjlVP8UfaFUgFrcprBimJAzhEajcHfpKV0HJOi0t/QZzcpLhV+pobjUsW0KRVpIWgQySwAnMaBMELSMdBXWfoLjalrker4kR7m/Xo4wB0tDS4u/gL2FgxampTqks1eWtsDi9Ve2KyvLA6GpySPcTNNTP9NSRFP+J2SbNTHV6p1kc0kyzQ3qqbXH59QYbaDsBpM4tXREmA0ooCSV9bVMQeCD22i8o2rzwZrvExxZPw0cu/hl79I0YAngdYQ8titYEQGDwy7IAYfe/hLD7ahF2by3C7n8ZYfe/ilT3zD+RdH/tyuR75z9I3v/SjcT9rzSjGMT/M8iJLaRCvU1YAzUHU+1iOCckANbs9Qw/SW+TNlrswnxIiw5GNQvLFcnGPop7jbCWvklSnJJ9ihKPa3NLe4K/gNku9iUYfh5BcR/rGW6bjhW26Fn+Yyhcml7gHX3NoEraYBM+ggHepqd/EBwv+75abZrLK0GxVLNDeqXLoDIT5Gk0u8ThBC2+SlDcJj0rbtMxwiboS0cL72qt0n9g2c5A8+Vain9bRwtbdKy4Tc8Kn0DfZrv41tUDq5gMp3+MjpE2me3Sy5f3iXY6Gsi/qdEx4rwUq7RTQ3GL4e0cuT0WUAWLZPhJBKjoVu470iocIaz8YZIVVxts/D3F7trkVoW+Ishboab4zekuXzHsB+XuIVkO2BR0NP++nhXWg/YUIoOtW5FswW9f7GsD16MDO4bV80WK1bPfyApzCx5bSGRA1SaGDxAU9x5J81th2qZnQfidWYU+eWkYjNFmh9CHoDyzCYpbr4M2jLAVCgrpWH5mVq+ya8Boq7aKO9S5nokQHg/TBC3DFaut3Gdqit/atrDsrKpKnRMs7lXpLR5dNF418vWvsJFLFTIIaQEPvopwIABZE3hZESCAoOBABHfPj5B5CLu7FmH3vYrw4XOPJdw99+Ok4bM49d3Tnbp7Z7dPa0JV5IsBsBNc0KWbZqDLoOmmDr3L/tW+qOzG9j1mRC2pgUX98oLKy9v1rripQ9/yq+AhD20D1dhSXK4Ft1aL0/+ohoFS39JxrbW+TiEYR9O7e6+Avjv0r+zapX9l1/ZFE2+8on9NW6iZGTru1X0ny0vF8n3pVd6xXfdAN0gdH5nbAkrIZ/XwXQ39gLTvK93Yqbj8+raFSsankpL1SVDKDapDwVJjqF2ngVOug2N17jWpXajf2FR1YLzVsULXFreXMilsabemrLNfPrSGMNvFbD3DDyZp/h4jKxalw9JeEEAoGmpCjpb2ZJvoaHK5Zdh8I6wkXD+k+iY9I2zXMH5EMsKHITIA2EcsbdEq33ethh2X2yKXt5rt/htCDk+QAq8NXGuR/4bQdbbr7bsJDJKRx7l8qIcAR6PQ/Yd7D8QJLuZGxntzixwPpbmNu1ZOpoJheArtyWxh9eSCZPU6/8lzmoS27lUt1Y8vGa56eNFW/KFFJ2WN4IFXEB6aEoQ0gf8uQPh9LyH8XpBahN0TSQTzEVYyD2HD5yLsrjnK590vASkg1dAZXyUOn72w5dAZj2qHTrtdP3RWW9NjC4mL4nUVAXjooNBqZp6PuqHv6d8+lxLAgKiVlxalE9psPp6XoYnIfqTarKfFLRpbmbwSEEkG/++heXQhnfjQq6+rHlz4K/bgIoSNCE4L5OmAMiXA7wESiNAIgAAiSAC/azbChs1UZOgMhA2dhbBhcxE2vBbhQ2aghMEzdifeOaM2ediLo4ghL+Zr7ph2lWbYnLTYt8X5BGQqysgLdDHbvP30lDDbzIpV1/aIdom9ZAG1Hxy+PMImLpdrMOQ0I1X8/3OAUdIo2x+EtSTDV69vRg2R/xcgH32lQ4sHX/GoRry8Fwc7wH9fkbWBBlpApCYwfG6QBEBmIWwoEMFMefCDYHdMR9gd0xB2xwyEDZmDsCGzET6wBiUMnPJV4sAXVyUNmFKlGTR1hPqOGlbdt+YGXf8p7dPghxrgJ9sOntoS1FccP/Xan/w9glRnbjnVGbikZhYKrS2seJ3JJhSY5IIe4gotJfwAy1VNq8N46QDcaiHQqksPKQPuV+z2OE6BYneymRrfWU2NuYG0cx3kuI44ogHzUe2DL/VMun/+StV9L/2M3f8Kwu55KVoTiNQGYkgAuxMG/QyEDQYSCBLBIJCpCBswBWH9axDWfwrCBkxF2MDpCB8wDeH9apCqd/UviX0mf9qi96TXkosrK5J7Vo1OKa64p2VRVW+id5WzRWFZTmKh/9aUovKbU4q8N5O9At1a5pX9W+Py5hAFkou0i31JuzBCxwrj9ZAAlRU3EFbud7Aqg2eXhhaPGhwx/v9xxBHHmWH67+wuLe6bP1Z1T+0O/O6XjsmEECQBHOwCIW0gggRkTWDI9CARRJDAoBcRNhBIoAbhQAZ9JiOsTzXC+kxCWO9Jyv+9a4LyIsKKa5CqZxVS9Sg/qios/y6xR/mXqvzATlVeYHNioX9DYr5/Q3Kef32iw7sp0S591tIhHUih+e+1FP+XXLBFLmQKa+/BYhhABKwwDQxPsdcZRxxxNAFg5NOMWJCbWDJ3umr43C/x4fNO4sNrg1OCIAlEEkFYG5geJAIgAdACFCLA+k1GWF8gAiCBakWKJyKsVxXCelbKgnevQBhIj6AURkhBBcLyyxHuKkcqZxlKdJShJLsftWR9SM1IUHgluvy7nHEZgma4eeAwE3t9ccQRRzPR0b2UbHnP3P6JJbNfUd019xA+dE6dPEW4U7ENyNpA7JRgYGNEAFpAiAgm1hNBUZAIelTKRCATQmEAYfl+hOX5EJ7nQ5jTizCHhHC7hFR2ESUyAkqmBdSS5pFaro8XKbxMDFpa/NVAc7NSXVL72GuKI444zgGpo+aktRw+Z3DisJkLVUNn7ceHzDyG3TkbYUNmxkwJIkmgIRHgQAa9gAgmIqxI0QrqiaAcYQVlCMtXyACIAHcpZIA7gAgklMCKKIkBIhCQmgZf9QgiCFVmtgpfGWjO37GHP2r9N4444jiPSH1gTppm2Kz+yUOnT1cNmbYTHzLzN2xwcOUANAIggjAJBKcFUUQA2oAiQAKyABEUliGsAEgggLA8RSuQNYIgESTYJJRok1BSUCNIiSQCxa8bPo+SlPCRyS7eB+G1seceRxxxXAC0f6JWpx4+k20xeKqYMHDKh6pB0w/hA148hvV/EWH9piiEEEkCxVVBbSB6WiBLmAj8YY0AcwWnBkGNIJERUTIjhqcGmlCVYIUE/iQo4XMdzVVk5VXcFHuuccQRx0UAGBotw2Z0JO6cdmfiwClTEvrVfIT3nXQQ7zv5N7zvZIT3nYKw3pMRVlyNsKKJCO+paARRRCCTgKIR4HmKNiBrBLKNQEKJrKQQASMiNSPIZdrk1FbgP2DlPtUzwqQ0p+RqauLMOOKI4wIDCqfohk6/oeWAiYNb9J/sTew7cUVCn0nbVH0mHcaLJh7Fe1adxHpMRFjPKoT1qEJY90qEFUbaCYJTBKcPqZx+lGD3oUS7DyUzXpQCREALx7S08D1JSzt0DP+G0cY/Dam45TRgccQRxz8TEA9gvLuqlWXQlNtS+lXf3aK4Skguqpib2KPybVVh+Sa8oGy3qiCwHy/wH04o8H+nKvD/oMrz/5jg9P+Y6PB9l2j3fp1sk/a3YPidaopbT7LCUpLhJ0OarjSHZAWvu9hjxhFHHJcIGAhZ7T+lPdFr4r/VvSpc6p7lgxLz/fcSPQOPqbsHnlbnB57RunzP6PJ9j6c4hPuJfN9Ag1O0Q2ZaSBJxsQOc4ogjjr8BMMpDIz0+4uOII4444ogjjjjiiON0+F+xnXASyD4nhAAAAABJRU5ErkJggg==" alt="Hyundai Polytech México"></div>
+            <div>
+                <h1 data-t="title"></h1>
+                <p data-t="sub"></p>
+            </div>
+        </div>
+        <div class="langs"><button data-l="es">ES</button><button data-l="en">EN</button><button data-l="ko">한국어</button></div>
+    </header>
+    <main>
+        <section id="accessCard" class="card access-card">
+            <div id="loginView">
+                <h2>Acceso GP12</h2><label for="accessPin">PIN de acceso o código maestro</label><input id="accessPin" type="password" inputmode="numeric" maxlength="8" placeholder="••••"><button id="loginBtn" class="btn primary full">INGRESAR</button>
+                <p id="loginMsg" class="access-msg"></p>
+            </div>
+            <div id="sessionView" hidden>
+                <div class="session-line"><strong id="sessionName"></strong>
+                    <div class="session-actions"><button id="adminBtn" class="btn secondary" hidden>Administrar personal</button><button id="reportBtn" class="btn primary" hidden>Reporte</button><button id="logoutBtn" class="link-btn">Cerrar sesión</button></div>
+                </div>
+            </div>
+        </section>
+        <section id="programCard" class="card stage" hidden>
+            <h2 data-t="s1"></h2>
+            <div class="grid">
+                <div><label data-t="program"></label><select id="program">
+                        <option value="" data-t="choose"></option>
+                    </select></div>
+                <div><label data-t="expected"></label><input id="part" readonly placeholder="—"></div>
+            </div>
+        </section>
+        <section id="scanCard" class="card stage" hidden>
+            <h2 data-t="s2"></h2>
+            <div class="scan"><input id="qr" data-ph="placeholder" autocomplete="off"><button id="camera" class="btn secondary" data-t="camera"></button></div>
+            <p class="hint" data-t="hint"></p>
+        </section>
+        <section id="result" class="result">
+            <div class="icon" id="icon"></div>
+            <h3 id="resultTitle"></h3>
+            <div id="resultText"></div>
+            <div class="checks">
+                <div class="check" id="c1"></div>
+                <div class="check" id="c2"></div>
+                <div class="check" id="c3"></div>
+            </div>
+        </section>
+        <section id="historyCard" class="card stage" hidden>
+            <div class="top">
+                <h2 style="margin:0" data-t="history"></h2>
+                <div><span id="count" class="count"></span> <button id="clear" class="btn danger" data-t="clear"></button></div>
+            </div>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-t="date"></th>
+                            <th>Inspector</th>
+                            <th data-t="program"></th>
+                            <th data-t="part"></th>
+                            <th>QR</th>
+                            <th data-t="status"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="rows"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    <footer data-t="foot"></footer>
+    <dialog id="adminDialog">
+        <div class="mh"><strong>Administrar personal GP12</strong><button id="closeAdmin">×</button></div>
+        <div class="admin-body">
+            <div id="masterStep"><label>Clave maestra</label><input id="masterPin" type="password" inputmode="numeric"><button id="masterBtn" class="btn primary full">CONTINUAR</button></div>
+            <div id="adminPanel" hidden>
+                <div class="admin-grid"><input id="newEmployee" placeholder="No. empleado"><input id="newName" placeholder="Nombre"><input id="newPin" type="password" inputmode="numeric" placeholder="PIN"><button id="addUserBtn" class="btn primary">Agregar</button></div>
+                <div id="userList" class="user-list"></div>
+                <hr><label>URL de Firebase Realtime Database</label>
+                <div class="scan"><input id="firebaseUrl" placeholder="https://proyecto-default-rtdb.firebaseio.com"><button id="saveFirebaseBtn" class="btn secondary">Guardar enlace</button></div>
+                <p class="cloud-note" id="cloudStatus"></p>
+            </div>
+        </div>
+    </dialog>
+    <dialog id="dlg">
+        <div class="mh"><strong data-t="cameraTitle"></strong><button id="close">×</button></div>
+        <div class="mb"><video id="video" playsinline></video>
+            <p data-t="aim"></p>
+        </div>
+    </dialog>
+    <style>
+        .access-card {
+            max-width: 720px
+        }
+
+        .session-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 7px;
+            flex-wrap: wrap
+        }
+
+        .session-actions .btn {
+            height: 38px
+        }
+
+        .access-card .session-actions .link-btn {
+            width: auto
+        }
+
+        @media(max-width:650px) {
+            .session-line {
+                flex-direction: column
+            }
+
+            .session-actions {
+                justify-content: flex-start;
+                width: 100%
+            }
+        }
+    </style>
+    <script>
+        const PKYK_MSG = {
+            es: 'Pieza NG de PKYK',
+            en: 'PKYK NG Part',
+            ko: 'PKYK 부적합품'
+        };
+        const DEFAULT_FIREBASE_DB_URL = 'https://qr-control-gp12-default-rtdb.firebaseio.com';
+        let FIREBASE_DB_URL = localStorage.getItem('hpm_firebase_url') || DEFAULT_FIREBASE_DB_URL,
+            cloudHadError = false;
+        const MASTER_HASH = 'b96cb18015f6896c4fc74454c578571dc84ef3c45e929f70f21773e09e972b50';
+        const INITIAL_USERS = [{
+            "id": "3055",
+            "name": "Karen Saenz",
+            "pinHash": "8e71b24534e9f3fb3a71263359fed2b7ffb008265e0d34383e319f1b6f5c08f2",
+            "active": true
+        }, {
+            "id": "1632",
+            "name": "Marisol Angel",
+            "pinHash": "531cc7ed4fd3f29616176976be389ab18c8d99e7d34407b149720c3eeaef99d0",
+            "active": true
+        }, {
+            "id": "360",
+            "name": "Cirilo Gomez",
+            "pinHash": "1571d82a30580cf5e5e93c86a59758f02c6a38e6f78d4bfa14dacfe0b66b8e15",
+            "active": true
+        }, {
+            "id": "3045",
+            "name": "Guadalupe Llanas",
+            "pinHash": "4c61a70becbc2a160646dc8928b718d02ecf2b980e505c2fe9d82759c177befd",
+            "active": true
+        }, {
+            "id": "3054",
+            "name": "Oscar Chavarria",
+            "pinHash": "23a8311091b3bfaf2b4e6f4e1a008bf53acc23bcbfef66dcda316ed2de28d536",
+            "active": true
+        }, {
+            "id": "3072",
+            "name": "Margarita Mendez",
+            "pinHash": "75708f8c8b2929289c50a4f726f89b94f6671f3e82ab9832e78f4e9b6de4ba78",
+            "active": true
+        }, {
+            "id": "2878",
+            "name": "Ana Deyanira",
+            "pinHash": "7d5ba460790a96d2be4867449f7b73c454621bd0688b13691aa33e74655de2be",
+            "active": true
+        }, {
+            "id": "3128",
+            "name": "Yaritza Mendez",
+            "pinHash": "9d9ceff673eaf9a700aae4e9b803f528721ab402c35663178329da2536af728a",
+            "active": true
+        }, {
+            "id": "1049",
+            "name": "Elizabeth Torres",
+            "pinHash": "be6eafb216bacf99327e0edd540461d26337eb8a470f57364b28da118ac5842c",
+            "active": true
+        }, {
+            "id": "3437",
+            "name": "Juan Moreno",
+            "pinHash": "0e3803a9c7361edd5a4ef83c013db8b952cab73373150ff24d3d73d92c40bad2",
+            "active": true
+        }, {
+            "id": "290",
+            "name": "Adriana Lopez",
+            "pinHash": "ff49a4f6ed54f15fa0954b265ad056a6f0fdab175ac8a1c3eb0a98a38e46da3d",
+            "active": true
+        }, {
+            "id": "3079",
+            "name": "Carolina Marin",
+            "pinHash": "45f1736264898588301e2983fd2de6969a9af33aa0f6f8ec588d258c1971c817",
+            "active": true
+        }, {
+            "id": "3482",
+            "name": "Bladimir Perez",
+            "pinHash": "23aadc4582d4f5ac48582b5d13eb24851e581ba3bde3a4b504c74bff8d445646",
+            "active": true
+        }, {
+            "id": "3615",
+            "name": "Elvins Palomo",
+            "pinHash": "8b29757eee9719468c0e001aa7771d7464f8e564bc3ca25c91a4ff31e78898c1",
+            "active": true
+        }, {
+            "id": "3242",
+            "name": "Jenifer Reyes",
+            "pinHash": "73c173325e4f67eb4e86eb8c888d2c7d0af50a9856afe9fda670902898949bd6",
+            "active": true
+        }, {
+            "id": "3533",
+            "name": "Guadalupe Salazar",
+            "pinHash": "408a5ee676694af19215cb22b2cd871e39c693f907933583ece00eda8d73ee16",
+            "active": true
+        }, {
+            "id": "336",
+            "name": "Rosa Montelongo",
+            "pinHash": "b52b378cbef9d95e5b93148ce26a9cad0a6a39f79ad910697521eb9d2d58ab7a",
+            "active": true
+        }, {
+            "id": "501",
+            "name": "Jose Santos",
+            "pinHash": "903a4207be29cb52c7c28b6b3e83b7bea776a390167924fe8ff18aa325f10285",
+            "active": true
+        }, {
+            "id": "414",
+            "name": "Beatriz Flores",
+            "pinHash": "bcce03f625c22998dcb812feb157db59cbb8f22a424a70710a8d9ef20c7e5580",
+            "active": true
+        }];
+        const PKYK_NG = new Set(["06VEI5ZPXL58571000SEEOXLS047T2607270000A00112AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00222AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00252AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00242AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00282AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00312AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00382AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00442AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00412AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00432AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00452AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00532AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00562AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00592AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00642AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00632AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00702AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00712AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00732AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00742AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00762AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00812AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00822AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00952AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01002AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01072AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01112AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01152AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01182AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01212AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01332AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01362AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01432AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01482AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01642AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01652AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01682AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01692AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01712AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01672AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01702AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01662AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01732AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01752AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01742AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01772AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01792AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01822AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01832AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01882AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01912AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01962AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01972AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A02032AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A02112AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A02132AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A02182AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A02192AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A02312AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00032AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00042AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00052AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00102AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00222AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00252AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00452AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00542AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00642AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00682AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00632AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00722AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00762AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00732AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00782AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00832AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00862AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00902AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00882AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00932AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00982AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01002AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00962AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01062AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01162AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01182AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01172AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01222AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01232AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01282AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01292AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01312AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01352AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01432AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01502AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01532AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01602AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01722AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01852AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01862AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01902AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01942AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01982AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02102AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02122AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02152AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02162AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02172AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02192AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02262AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02282AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02352AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02442AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02462AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02452AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02482AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02472AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02542AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02552AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02622AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02612AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02642AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02672AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02732AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02702AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02722AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02712AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02792AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02822AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02912AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02922AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02982AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03012AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03042AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03132AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03112AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03152AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03422AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03502AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03532AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03552AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03542AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03822AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03852AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03902AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03932AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03942AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03982AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04162AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04142AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04202AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04212AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04222AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04242AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04272AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04312AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04382AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04372AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04432AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04442AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04452AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04462AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04492AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04532AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04552AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04602AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04692AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04722AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04832AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04842AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04902AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04972AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04982AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A04992AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05022AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05042AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05062AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05122AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05112AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05162AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05152AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05182AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05192AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05222AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05202AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05362AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05412AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05452AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05442AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05482AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05492AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05502AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05582AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05562AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05572AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05602AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05622AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05672AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05732AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05762AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05782AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05802AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05812AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05822AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05842AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05912AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05922AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05972AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05962AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05982AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06032AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06042AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06162AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06202AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06212AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06232AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06222AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06312AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06342AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06372AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06392AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06402AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06422AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06532AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06572AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06562AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06592AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06582AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06612AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06672AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06682AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06692AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06732AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06772AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06782AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06792AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06852AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06912AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06942AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06962AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06992AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07052AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07182AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07202AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07232AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07242AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07222AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07252AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07272AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07302AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07332AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07352AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07382AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07422AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07432AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07452AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07482AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07492AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07532AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07602AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07622AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07682AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07692AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07762AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07782AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07802AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07822AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07812AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07832AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07862AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07852AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07882AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07872AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07902AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07892AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07912AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07922AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07942AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07962AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07982AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07972AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07992AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08012AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08042AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08122AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08132AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08162AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08182AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08152AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08192AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08202AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08212AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08262AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08252AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08302AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08312AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08372AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08382AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08362AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08422AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08402AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08492AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08502AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08522AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08532AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08622AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08612AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08662AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08672AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08712AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08762AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08822AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08842AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08862AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08852AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08882AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08892AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08912AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08932AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08942AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08952AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08982AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09092AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09132AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09152AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09182AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09202AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09282AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09302AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09312AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09332AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09362AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09392AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09442AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09502AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09522AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09602AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09682AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09702AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09742AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09732AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09752AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09802AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09792AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09822AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09892AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09972AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09992AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10072AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10092AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10102AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10122AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10132AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10162AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10182AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10202AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10232AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10252AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10212AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10262AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10272AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10302AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10332AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10342AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10422AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10442AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10452AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10472AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10592AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10602AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10492AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10572AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10582AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10512AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10462AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10642AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10652AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10682AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10672AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10732AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10722AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10752AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10782AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10792AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10872AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10852AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10882AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10912AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10902AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10972AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11022AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11012AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11032AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11042AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11052AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11102AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11072AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11142AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11152AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11242AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11212AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11222AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11232AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11262AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11292AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11312AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11372AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11462AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11452AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11502AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11512AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11612AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11712AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11802AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11842AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11872AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11962AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11992AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A11982AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12002AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12022AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12042AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12102AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12122AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12192AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12302AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12352AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12372AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12392AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12412AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12462AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12452AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12432AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12492AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12512AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12532AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12522AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12572AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12622AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12602AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12632AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12682AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12662AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12702AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12692AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12742AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12732AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12762AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12752AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12772AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12782AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12842AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12852AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12862AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12892AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12912AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12942AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12932AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12962AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12972AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12922AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12992AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12982AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13022AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13072AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13092AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13102AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13162AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13182AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13192AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13232AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13322AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13372AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13382AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13402AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13462AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13472AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13492AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13482AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13532AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13512AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13552AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13602AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13612AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13622AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13672AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13662AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13682AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13722AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13742AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13752AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13812AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13782AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13842AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13882AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13902AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13932AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13942AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14002AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13992AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14022AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14032AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14062AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14052AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14092AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14112AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14172AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14202AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14222AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14242AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14282AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14302AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14292AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14312AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14342AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14332AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14362AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14372AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14402AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14422AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14432AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14462AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14452AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14512AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14522AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14532AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14542AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14562AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14612AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14602AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14622AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14592AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14642AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14652AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14682AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14712AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14722AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14742AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14752AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14762AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14772AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14782AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14812AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14822AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14832AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14872AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14892AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14912AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14932AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14942AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14992AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14982AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15002AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15052AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15062AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15072AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15092AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15112AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15102AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15132AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15122AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15152AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15162AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15192AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15182AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15222AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15252AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15242AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15262AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15282AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15292AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15312AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15302AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15332AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15352AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15342AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15372AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15432AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15392AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15422AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15502AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15472AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15452AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15442AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15522AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15572AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15542AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15562AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15592AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15582AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15632AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15652AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15642AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15702AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15672AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15692AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15712AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15722AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15732AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15762AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15772AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15802AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15822AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15882AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15872AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00102AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A00272AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01142AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A01862AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607270000A02052AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A00842AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01272AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01972AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A01992AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02252AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A02652AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A03002AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05592AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A05992AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A06632AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07522AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A07772AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A08542AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A09832AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A10982AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12012AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A12472AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A13732AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A14632AMNCXXX", "06VEI5ZPXL58571000SEEOXLS047T2607280000A15012AMNCXXX"]);
+        const P = [
+            ['SU2B', 'BM331A3500'],
+            ['CL4M', 'GG58563120'],
+            ['NX4A', 'N958563000'],
+            ['BL7M', 'BM341A7900'],
+            ['BR2', 'BM331-08200'],
+            ['LQ2', 'XL58571000'],
+            ['MX5A', 'BA38104800'],
+            ['MVA MAIN', 'BA381A1600'],
+            ['MVA REMOTE', 'BA380-04400'],
+            ['SVM', 'BA38206800'],
+            ['NQ5A', 'BA38111600B'],
+            ['CE1 MAIN', 'BA381A1600'],
+            ['CE1 REMOTE', 'BA380A1700B'],
+            ['CL4M MAIN', 'BA382A3000'],
+            ['CL4M REMOTE', 'BA380A2900'],
+            ['MX5A HE REV', 'BA381A2500'],
+            ['MX5A HE PEV', 'BA38111000']
+        ];
+        const T = {
+            es: {
+                title: 'Verificación de Código QR RSVR',
+                sub: 'Hyundai Polytech México · Control de identificación',
+                s1: '1. Seleccione el programa',
+                program: 'Programa / Modelo',
+                choose: 'Seleccione una opción',
+                expected: 'Número de parte esperado',
+                s2: '2. Escanee el código QR',
+                placeholder: 'Escanee con lector o escriba el código',
+                camera: 'Abrir cámara',
+                hint: 'El sistema revisará legibilidad, duplicidad y número de parte.',
+                history: 'Historial de verificación',
+                clear: 'Limpiar',
+                date: 'Fecha',
+                part: 'No. parte',
+                status: 'Resultado',
+                foot: 'HPM · Verificación local de trazabilidad RSVR',
+                cameraTitle: 'Escanear código QR',
+                aim: 'Apunte la cámara al código QR',
+                select: 'Seleccione primero un programa.',
+                empty: 'No se detectó un código legible.',
+                approved: 'QR APROBADO',
+                rejected: 'QR NO APROBADO',
+                correct: 'Código correcto y disponible.',
+                wrong: 'El QR no contiene el número de parte esperado.',
+                duplicate: 'Este código QR ya fue registrado.',
+                read: 'Legible',
+                unread: 'No legible',
+                unique: 'No repetido',
+                repeated: 'Repetido',
+                pc: 'No. parte correcto',
+                pw: 'No. parte incorrecto',
+                ok: 'APROBADO',
+                ng: 'RECHAZADO',
+                records: 'registros',
+                confirm: '¿Borrar todo el historial guardado?',
+                nocam: 'La cámara o lectura QR no está disponible. Use un lector o captura manual.'
+            },
+            en: {
+                title: 'RSVR QR Code Verification',
+                sub: 'Hyundai Polytech Mexico · Identification control',
+                s1: '1. Select the program',
+                program: 'Program / Model',
+                choose: 'Select an option',
+                expected: 'Expected part number',
+                s2: '2. Scan the QR code',
+                placeholder: 'Scan with reader or type the code',
+                camera: 'Open camera',
+                hint: 'The system checks readability, duplication and part number.',
+                history: 'Verification history',
+                clear: 'Clear',
+                date: 'Date',
+                part: 'Part No.',
+                status: 'Result',
+                foot: 'HPM · Local RSVR traceability verification',
+                cameraTitle: 'Scan QR code',
+                aim: 'Point the camera at the QR code',
+                select: 'Select a program first.',
+                empty: 'No readable code was detected.',
+                approved: 'QR APPROVED',
+                rejected: 'QR NOT APPROVED',
+                correct: 'Correct and available code.',
+                wrong: 'The QR does not contain the expected part number.',
+                duplicate: 'This QR code was already recorded.',
+                read: 'Readable',
+                unread: 'Not readable',
+                unique: 'Not repeated',
+                repeated: 'Repeated',
+                pc: 'Correct part No.',
+                pw: 'Incorrect part No.',
+                ok: 'APPROVED',
+                ng: 'REJECTED',
+                records: 'records',
+                confirm: 'Delete all saved history?',
+                nocam: 'Camera or QR detection is unavailable. Use a scanner or manual entry.'
+            },
+            ko: {
+                title: 'RSVR QR 코드 검증',
+                sub: '현대폴리텍 멕시코 · 식별 관리',
+                s1: '1. 프로그램을 선택하세요',
+                program: '프로그램 / 모델',
+                choose: '옵션을 선택하세요',
+                expected: '예상 품번',
+                s2: '2. QR 코드를 스캔하세요',
+                placeholder: '스캐너로 읽거나 코드를 입력하세요',
+                camera: '카메라 열기',
+                hint: '가독성, 중복 여부 및 품번을 확인합니다.',
+                history: '검증 이력',
+                clear: '삭제',
+                date: '날짜',
+                part: '품번',
+                status: '결과',
+                foot: 'HPM · RSVR 로컬 추적성 검증',
+                cameraTitle: 'QR 코드 스캔',
+                aim: '카메라를 QR 코드에 맞추세요',
+                select: '먼저 프로그램을 선택하세요.',
+                empty: '읽을 수 있는 코드가 감지되지 않았습니다.',
+                approved: 'QR 승인',
+                rejected: 'QR 미승인',
+                correct: '정확하며 사용 가능한 코드입니다.',
+                wrong: 'QR에 예상 품번이 포함되어 있지 않습니다.',
+                duplicate: '이미 등록된 QR 코드입니다.',
+                read: '판독 가능',
+                unread: '판독 불가',
+                unique: '중복 없음',
+                repeated: '중복',
+                pc: '품번 일치',
+                pw: '품번 불일치',
+                ok: '승인',
+                ng: '거부',
+                records: '건',
+                confirm: '저장된 이력을 모두 삭제하시겠습니까?',
+                nocam: '카메라 또는 QR 인식을 사용할 수 없습니다. 스캐너나 직접 입력을 사용하세요.'
+            }
+        };
+        const $ = x => document.getElementById(x),
+            K = 'hpm_rsvr_qr_v1',
+            UK = 'hpm_gp12_users_v1',
+            SK = 'hpm_gp12_session_v1';
+        let L = 'es',
+            stream, scanning = false,
+            currentUser = null,
+            verifying = false,
+            scanTimer = null;
+        const t = k => k === 'pkyk' ? PKYK_MSG[L] : T[L][k],
+            norm = v => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, ''),
+            get = () => {
+                try {
+                    return JSON.parse(localStorage.getItem(K) || '[]')
+                } catch {
+                    return []
+                }
+            },
+            save = a => localStorage.setItem(K, JSON.stringify(a));
+        const sha = async v => {
+            const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(v)));
+            return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('')
+        };
+
+        function getUsers() {
+            try {
+                const x = JSON.parse(localStorage.getItem(UK) || 'null');
+                if (Array.isArray(x)) return x
+            } catch {}
+            localStorage.setItem(UK, JSON.stringify(INITIAL_USERS));
+            return JSON.parse(JSON.stringify(INITIAL_USERS))
+        }
+
+        function saveUsers(x) {
+            localStorage.setItem(UK, JSON.stringify(x));
+            cloudPut('/users', x)
+        }
+        async function cloud(path, options = {}) {
+            if (!FIREBASE_DB_URL) {
+                cloudHadError = true;
+                return null
+            }
+            try {
+                const r = await fetch(FIREBASE_DB_URL + path + '.json', {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    ...options
+                });
+                if (!r.ok) throw Error('HTTP ' + r.status);
+                return await r.json()
+            } catch (e) {
+                cloudHadError = true;
+                console.warn('Firebase:', e);
+                return null
+            }
+        }
+        const cloudPut = (p, v) => cloud(p, {
+                method: 'PUT',
+                body: JSON.stringify(v)
+            }),
+            cloudPost = (p, v) => cloud(p, {
+                method: 'POST',
+                body: JSON.stringify(v)
+            });
+        function updateCloudStatus() {
+            if (!FIREBASE_DB_URL) {
+                $('cloudStatus').textContent = 'Firebase pendiente de configuración';
+                $('cloudStatus').className = 'cloud-note cloud-off';
+                return
+            }
+            if (cloudHadError) {
+                $('cloudStatus').textContent = 'Firebase sin acceso: revise las reglas de la base de datos';
+                $('cloudStatus').className = 'cloud-note cloud-off'
+            } else {
+                $('cloudStatus').textContent = 'Firebase conectado';
+                $('cloudStatus').className = 'cloud-note cloud-ok'
+            }
+        }
+        async function syncCloud() {
+            if (!FIREBASE_DB_URL) {
+                updateCloudStatus();
+                return
+            }
+            cloudHadError = false;
+            const u = await cloud('/users');
+            if (Array.isArray(u) && u.length) localStorage.setItem(UK, JSON.stringify(u));
+            else if (!cloudHadError) await cloudPut('/users', getUsers());
+            const r = await cloud('/records');
+            if (r && typeof r === 'object') {
+                const merged = [...Object.values(r), ...get()];
+                const seen = new Set();
+                save(merged.filter(x => {
+                    const k = x.date + '|' + x.code;
+                    if (seen.has(k)) return false;
+                    seen.add(k);
+                    return true
+                }).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 1000))
+            }
+            updateCloudStatus();
+            render()
+        }
+
+        function showStage(id, on = true) {
+            $(id).hidden = !on
+        }
+        function applySession(u) {
+            currentUser = u;
+            $('loginView').hidden = true;
+            $('sessionView').hidden = false;
+            $('sessionName').textContent = u.name + ' · ' + u.id;
+            $('adminBtn').hidden = !u.admin;
+            $('reportBtn').hidden = !u.admin;
+            showStage('programCard');
+            try {
+                sessionStorage.setItem(SK, JSON.stringify({
+                    id: u.id,
+                    admin: !!u.admin
+                }))
+            } catch {}
+        }
+
+        function saveSessionProgram() {
+            if (!currentUser) return;
+            try {
+                const saved = JSON.parse(sessionStorage.getItem(SK) || '{}');
+                saved.id = currentUser.id;
+                saved.admin = !!currentUser.admin;
+                saved.program = $('program').value;
+                sessionStorage.setItem(SK, JSON.stringify(saved))
+            } catch {}
+        }
+
+        function clearSession() {
+            try {
+                sessionStorage.removeItem(SK)
+            } catch {}
+        }
+
+        async function restoreSession() {
+            let saved;
+            try {
+                saved = JSON.parse(sessionStorage.getItem(SK) || 'null')
+            } catch {
+                saved = null
+            }
+            if (!saved || !saved.id) return false;
+            let u;
+            if (saved.admin && saved.id === '3508') u = {
+                id: '3508',
+                name: 'Administrador',
+                admin: true
+            };
+            else u = getUsers().find(x => x.active && x.id === saved.id);
+            if (!u) {
+                clearSession();
+                return false
+            }
+            applySession(u);
+            if (saved.program !== undefined && saved.program !== '' && P[+saved.program]) {
+                $('program').value = saved.program;
+                $('program').dispatchEvent(new Event('change'))
+            }
+            await syncCloud();
+            return true
+        }
+        async function login() {
+            const h = await sha($('accessPin').value.trim());
+            let u;
+            if (h === MASTER_HASH) u = {
+                id: '3508',
+                name: 'Administrador',
+                admin: true
+            };
+            else u = getUsers().find(x => x.active && x.pinHash === h);
+            if (!u) {
+                $('loginMsg').textContent = 'PIN incorrecto o usuario inactivo';
+                $('accessPin').select();
+                return
+            }
+            applySession(u);
+            $('accessPin').value = '';
+            $('loginMsg').textContent = '';
+            $('program').focus();
+            await syncCloud()
+        }
+        $('loginBtn').onclick = login;
+        $('accessPin').onkeydown = e => {
+            if (e.key === 'Enter') login()
+        };
+        $('logoutBtn').onclick = () => {
+            currentUser = null;
+            clearSession();
+            $('loginView').hidden = false;
+            $('sessionView').hidden = true;
+            $('adminBtn').hidden = true;
+            $('reportBtn').hidden = true;
+            ['programCard', 'scanCard', 'historyCard'].forEach(x => showStage(x, false));
+            $('result').className = 'result';
+            $('program').value = '';
+            $('part').value = '';
+            $('accessPin').focus()
+        };
+        $('adminBtn').onclick = () => {
+            $('adminDialog').showModal();
+            if (currentUser?.admin) {
+                $('masterStep').hidden = true;
+                $('adminPanel').hidden = false;
+                renderUsers();
+                syncCloud()
+            } else {
+                $('masterStep').hidden = false;
+                $('adminPanel').hidden = true;
+                $('masterPin').focus()
+            }
+        };
+        $('closeAdmin').onclick = () => $('adminDialog').close();
+        $('masterBtn').onclick = async () => {
+            if (await sha($('masterPin').value) !== MASTER_HASH) {
+                alert('Clave maestra incorrecta');
+                return
+            }
+            $('masterStep').hidden = true;
+            $('adminPanel').hidden = false;
+            $('masterPin').value = '';
+            renderUsers();
+            syncCloud()
+        };
+
+        function renderUsers() {
+            const u = getUsers();
+            $('userList').innerHTML = u.map((x, i) => `<div class="user-row"><span>${esc(x.id)}</span><span>${esc(x.name)}</span><button class="btn danger" onclick="removeUser(${i})">Quitar</button></div>`).join('')
+        }
+        window.removeUser = i => {
+            const u = getUsers();
+            if (!confirm('¿Quitar acceso a ' + u[i].name + '?')) return;
+            u.splice(i, 1);
+            saveUsers(u);
+            renderUsers()
+        };
+        $('addUserBtn').onclick = async () => {
+            const id = $('newEmployee').value.trim(),
+                name = $('newName').value.trim(),
+                pin = $('newPin').value.trim();
+            if (!id || !name || pin.length < 4) return alert('Capture empleado, nombre y PIN de al menos 4 dígitos');
+            const u = getUsers();
+            if (u.some(x => x.id === id)) return alert('El número de empleado ya existe');
+            const pinHash = await sha(pin);
+            if (u.some(x => x.pinHash === pinHash)) return alert('Ese PIN ya está asignado');
+            u.push({
+                id,
+                name,
+                pinHash,
+                active: true
+            });
+            saveUsers(u);
+            ['newEmployee', 'newName', 'newPin'].forEach(x => $(x).value = '');
+            renderUsers()
+        };
+        $('firebaseUrl').value = FIREBASE_DB_URL;
+        $('saveFirebaseBtn').onclick = async () => {
+            FIREBASE_DB_URL = $('firebaseUrl').value.trim().replace(/\/$/, '');
+            if (!/^https:\/\/.+\.(firebaseio\.com|firebasedatabase\.app)$/.test(FIREBASE_DB_URL)) return alert('La URL de Firebase no tiene un formato válido');
+            localStorage.setItem('hpm_firebase_url', FIREBASE_DB_URL);
+            await syncCloud()
+        };
+        async function exportReport() {
+            if (!currentUser?.admin) return alert('Acceso exclusivo para administrador');
+            if (typeof XLSX === 'undefined') return alert('No fue posible cargar el generador de Excel. Revise la conexión a internet.');
+            $('reportBtn').disabled = true;
+            $('reportBtn').textContent = 'Generando…';
+            try {
+                cloudHadError = false;
+                const remote = await cloud('/records');
+                updateCloudStatus();
+                let rows = remote && typeof remote === 'object' ? Object.values(remote) : get();
+                if (!rows.length) return alert('No hay registros disponibles para generar el reporte.');
+                rows.sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
+                const detail = rows.map((r, i) => ({
+                    'No.': i + 1,
+                    'Fecha y hora': r.date ? new Date(r.date).toLocaleString('es-MX') : '',
+                    'No. empleado': r.inspectorId || '',
+                    'Inspector': r.inspector || '',
+                    'Programa / Modelo': r.program || '',
+                    'Número de parte': r.part || '',
+                    'Código QR': r.code || '',
+                    'Resultado': r.ok ? 'APROBADO' : 'RECHAZADO',
+                    'Motivo': r.reason === 'pkyk' ? 'Pieza NG de PKYK' : r.reason === 'duplicate' ? 'Código repetido' : r.reason === 'wrong' ? 'Número de parte incorrecto' : r.reason || ''
+                }));
+                const approved = rows.filter(r => r.ok).length,
+                    rejected = rows.length - approved,
+                    pkyk = rows.filter(r => r.reason === 'pkyk').length,
+                    duplicate = rows.filter(r => r.reason === 'duplicate').length,
+                    wrong = rows.filter(r => r.reason === 'wrong').length;
+                const summary = [
+                    ['REPORTE GP12 — VALIDACIÓN DE CÓDIGOS QR'],
+                    ['Fecha de generación', new Date().toLocaleString('es-MX')],
+                    ['Generado por', currentUser.name],
+                    ['Fuente', cloudHadError ? 'Respaldo local' : 'Firebase Realtime Database'],
+                    [],
+                    ['Indicador', 'Cantidad'],
+                    ['Total de verificaciones', rows.length],
+                    ['Aprobadas', approved],
+                    ['Rechazadas', rejected],
+                    ['Pieza NG de PKYK', pkyk],
+                    ['Códigos repetidos', duplicate],
+                    ['Número de parte incorrecto', wrong]
+                ];
+                const wb = XLSX.utils.book_new(),
+                    wsSummary = XLSX.utils.aoa_to_sheet(summary),
+                    wsDetail = XLSX.utils.json_to_sheet(detail);
+                wsSummary['!cols'] = [{
+                    wch: 34
+                }, {
+                    wch: 28
+                }];
+                wsDetail['!cols'] = [{
+                    wch: 7
+                }, {
+                    wch: 22
+                }, {
+                    wch: 14
+                }, {
+                    wch: 24
+                }, {
+                    wch: 20
+                }, {
+                    wch: 18
+                }, {
+                    wch: 70
+                }, {
+                    wch: 14
+                }, {
+                    wch: 27
+                }];
+                XLSX.utils.book_append_sheet(wb, wsSummary, 'Resumen');
+                XLSX.utils.book_append_sheet(wb, wsDetail, 'Registros');
+                const d = new Date(),
+                    stamp = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                XLSX.writeFile(wb, `Reporte_GP12_QR_${stamp}.xlsx`)
+            } finally {
+                $('reportBtn').disabled = false;
+                $('reportBtn').textContent = 'Reporte'
+            }
+        }
+        $('reportBtn').onclick = exportReport;
+        P.forEach((x, i) => {
+            let o = document.createElement('option');
+            o.value = i;
+            o.textContent = x.join(' — ');
+            $('program').append(o)
+        });
+
+        function sel() {
+            return $('program').value === '' ? null : P[+$('program').value]
+        }
+        function focusScanner(selectText = false) {
+            if (!currentUser || $('scanCard').hidden) return;
+            try {
+                $('qr').focus({ preventScroll: true })
+            } catch {
+                $('qr').focus()
+            }
+            if (selectText) $('qr').select()
+        }
+        function partMatches(raw, program) {
+            const qr = norm(raw);
+            return !!program && program.slice(1).some(number => qr.includes(norm(number)))
+        }
+        $('program').onchange = () => {
+            const ready = !!sel();
+            $('part').value = sel()?.[1] || '';
+            showStage('scanCard', ready);
+            showStage('historyCard', ready);
+            $('result').className = 'result';
+            saveSessionProgram();
+            if (ready) setTimeout(() => focusScanner(true), 80)
+        };
+
+        function setLang(l) {
+            L = l;
+            document.documentElement.lang = l;
+            document.querySelectorAll('[data-t]').forEach(e => e.textContent = t(e.dataset.t));
+            document.querySelectorAll('[data-ph]').forEach(e => e.placeholder = t(e.dataset.ph));
+            document.querySelectorAll('[data-l]').forEach(e => e.classList.toggle('on', e.dataset.l === l));
+            render()
+        }
+        document.querySelectorAll('[data-l]').forEach(e => e.onclick = () => setLang(e.dataset.l));
+
+        function show(ok, msg, read, dup, part) {
+            $('result').className = 'result show ' + (ok ? 'ok' : 'ng');
+            $('icon').textContent = ok ? '✓' : '✕';
+            $('resultTitle').textContent = t(ok ? 'approved' : 'rejected');
+            $('resultText').textContent = t(msg);
+            $('c1').textContent = (read ? '✓ ' : '✕ ') + t(read ? 'read' : 'unread');
+            $('c2').textContent = (dup ? '✕ ' : '✓ ') + t(dup ? 'repeated' : 'unique');
+            $('c3').textContent = (part ? '✓ ' : '✕ ') + t(part ? 'pc' : 'pw');
+            $('result').scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            })
+        }
+        async function fastCloudDuplicate(key) {
+            if (!FIREBASE_DB_URL) return false;
+            const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 1200);
+            try {
+                const response = await fetch(FIREBASE_DB_URL + '/codes/' + key + '.json', { signal: controller.signal });
+                if (!response.ok) throw Error('HTTP ' + response.status);
+                return (await response.json()) !== null
+            } catch (error) {
+                cloudHadError = true;
+                console.warn('Firebase duplicate check:', error);
+                return false
+            } finally {
+                clearTimeout(timeout)
+            }
+        }
+        async function verify() {
+            if (verifying) return;
+            let s = sel();
+            if (!currentUser) return $('accessPin').focus();
+            if (!s) return alert(t('select'));
+            let raw = $('qr').value.trim(),
+                clean = norm(raw),
+                read = clean.length >= 10;
+            if (!read) {
+                show(false, 'empty', false, false, false);
+                focusScanner(true);
+                return
+            }
+            verifying = true;
+            clearTimeout(scanTimer);
+            try {
+                const a = get(), key = await sha(clean), blocked = PKYK_NG.has(clean),
+                    localDup = a.some(x => norm(x.code) === clean), part = partMatches(raw, s),
+                    cloudDup = !blocked && !localDup && part ? await fastCloudDuplicate(key) : false,
+                    dup = localDup || cloudDup, ok = !blocked && !dup && part,
+                    msg = blocked ? 'pkyk' : dup ? 'duplicate' : part ? 'correct' : 'wrong';
+                // El resultado se presenta antes de cualquier escritura remota.
+                show(ok, msg, true, dup, part);
+                $('qr').value = '';
+                if (msg !== 'wrong') {
+                    const rec = { date: new Date().toISOString(), inspectorId: currentUser.id,
+                        inspector: currentUser.name, program: s[0], part: s[1], code: raw, ok, reason: msg };
+                    a.unshift(rec);
+                    save(a.slice(0, 1000));
+                    render();
+                    if (FIREBASE_DB_URL) {
+                        cloudPost('/records', rec);
+                        cloudPut('/codes/' + key, { date: rec.date, inspectorId: rec.inspectorId, ok: rec.ok })
+                    }
+                }
+            } finally {
+                verifying = false;
+                setTimeout(() => focusScanner(), 60)
+            }
+        }
+        $('qr').addEventListener('input', () => {
+            clearTimeout(scanTimer);
+            if (norm($('qr').value).length >= 10) scanTimer = setTimeout(verify, 180)
+        });
+        const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        } [c]));
+
+        function render() {
+            let a = get();
+            $('count').textContent = `${a.length} ${t('records')}`;
+            $('rows').innerHTML = a.length ? a.map(x => {
+                const code = x.code || '';
+                return `<tr><td>${new Date(x.date).toLocaleString(L==='ko'?'ko-KR':L==='en'?'en-US':'es-MX')}</td><td>${esc(x.inspector||'—')}</td><td>${esc(x.program)}</td><td>${esc(x.part)}</td><td title="${esc(code)}">${esc(code.length>26?code.slice(0,26)+'…':code)}</td><td class="${x.ok?'yes':'no'}">${t(x.ok?'ok':'ng')}</td></tr>`
+            }).join('') : '<tr><td colspan="6" style="text-align:center">—</td></tr>'
+        }
+        $('clear').onclick = () => {
+            if (confirm(t('confirm'))) {
+                localStorage.removeItem(K);
+                render();
+                $('result').className = 'result';
+                if (sel()) setTimeout(() => $('qr').focus(), 50)
+            }
+        };
+        async function stop() {
+            scanning = false;
+            if (stream) stream.getTracks().forEach(x => x.stop());
+            stream = null;
+            if ($('dlg').open) $('dlg').close()
+        }
+        $('close').onclick = stop;
+        $('camera').onclick = async () => {
+            if (!('BarcodeDetector' in window) || !navigator.mediaDevices?.getUserMedia) return alert(t('nocam'));
+            try {
+                let d = new BarcodeDetector({
+                    formats: ['qr_code']
+                });
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: {
+                            ideal: 'environment'
+                        }
+                    }
+                });
+                $('video').srcObject = stream;
+                await $('video').play();
+                $('dlg').showModal();
+                scanning = true;
+                (async function scan() {
+                    if (!scanning) return;
+                    try {
+                        let c = await d.detect($('video'));
+                        if (c.length) {
+                            $('qr').value = c[0].rawValue;
+                            await stop();
+                            verify();
+                            return
+                        }
+                    } catch {}
+                    requestAnimationFrame(scan)
+                })()
+            } catch {
+                alert(t('nocam'));
+                stop()
+            }
+        };
+        // Captura el lector antes de que el navegador interprete su sufijo como
+        // recarga, navegación, clic de botón o envío predeterminado.
+        window.addEventListener('keydown', e => {
+            if (!currentUser || $('scanCard').hidden || $('adminDialog').open || $('dlg').open) return;
+            const reloadKey = e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r');
+            if (reloadKey) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                return
+            }
+            if (e.key === 'Enter' || e.key === 'Tab') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                clearTimeout(scanTimer);
+                focusScanner();
+                verify();
+                return
+            }
+            if (document.activeElement !== $('qr') && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                $('qr').value += e.key;
+                focusScanner();
+                $('qr').dispatchEvent(new Event('input'))
+            }
+        }, true);
+        document.addEventListener('submit', e => e.preventDefault(), true);
+        window.addEventListener('focus', () => focusScanner());
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) focusScanner()
+        });
+        setLang('es');
+        restoreSession().then(restored => {
+            if (!restored) $('accessPin').focus()
+        });
+    </script>
+    <style>
+        .access-card {
+            max-width: 520px;
+            margin-left: auto;
+            margin-right: auto
+        }
+
+        .full {
+            width: 100%;
+            margin-top: 12px
+        }
+
+        .link-btn {
+            border: 0;
+            background: transparent;
+            color: #1769aa;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 10px
+        }
+
+        .access-card .link-btn {
+            width: 100%
+        }
+
+        .access-msg {
+            min-height: 18px;
+            text-align: center;
+            color: #c62828;
+            font-weight: 700
+        }
+
+        .session-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        .admin-body {
+            padding: 18px
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr auto;
+            gap: 8px
+        }
+
+        .user-list {
+            margin-top: 14px;
+            max-height: 320px;
+            overflow: auto
+        }
+
+        .user-row {
+            display: grid;
+            grid-template-columns: 80px 1fr auto;
+            gap: 8px;
+            align-items: center;
+            padding: 9px;
+            border-bottom: 1px solid #e2e8f0
+        }
+
+        .cloud-note {
+            font-size: 11px;
+            color: #64748b
+        }
+
+        .cloud-ok {
+            color: #168447
+        }
+
+        .cloud-off {
+            color: #c62828
+        }
+
+        @media(max-width:650px) {
+            .admin-grid {
+                grid-template-columns: 1fr
+            }
+
+            .session-line {
+                align-items: flex-start;
+                gap: 8px
+            }
+        }
+
+        .brand {
+            gap: 14px
+        }
+
+        .logo {
+            width: 145px;
+            height: 52px;
+            border-radius: 7px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px
+        }
+
+        .logo img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain
+        }
+    </style>
+</body>
+
+</html>
